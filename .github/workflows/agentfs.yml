@@ -1,0 +1,89 @@
+name: "agentfs"
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'release-**'
+    paths:
+      - 'sdk/agentfs/**'
+      - 'sdk/agentfs-java/**'
+      - 'sdk/agentfs-python/**'
+      - 'sdk/java/libjfs/**'
+      - 'pkg/**'
+      - 'cmd/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/agentfs.yml'
+  pull_request:
+    branches:
+      - 'main'
+      - 'release-**'
+    paths:
+      - 'sdk/agentfs/**'
+      - 'sdk/agentfs-java/**'
+      - 'sdk/agentfs-python/**'
+      - 'sdk/java/libjfs/**'
+      - 'pkg/**'
+      - 'cmd/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/agentfs.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  unit:
+    timeout-minutes: 20
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check shared fixtures single source
+        run: bash sdk/agentfs/scripts/check-shared-fixtures.sh
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      # TestPush needs a local push gateway; keep the same scope as agentfs-java/scripts/regression.sh.
+      - name: libjfs identity and stat tests
+        run: go test -tags nogspt ./sdk/java/libjfs -run 'TestUpdateAllCtx|TestGuidMask|TestGenGuid|TestFillStatIdentityRecordBoundary' -count=1
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: agentfs-java unit tests
+        run: mvn -B -f sdk/agentfs-java/pom.xml test
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Python agentfs tests
+        run: |
+          PYTHONPATH=sdk/agentfs-python python3 -m unittest discover -s sdk/agentfs-python/tests -p "*_test.py"
+
+  python-standalone:
+    timeout-minutes: 60
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and consume standalone Python AgentFS
+        run: bash sdk/agentfs-python/scripts/verify.sh all
