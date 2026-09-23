@@ -18,11 +18,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from agentfs_test import AgentFSTest, LocalClient
+import agentfs_test
+from agentfs_test import LocalClient
 from agentfs import AgentFS, RawSearchProvider, RipgrepSearchProvider, SearchProvider, SearchProviderError
 
 
-class RipgrepAgentFSTest(AgentFSTest):
+class RipgrepAgentFSTest(agentfs_test.AgentFSTest):
     def setUp(self):
         super().setUp()
         self.fs = AgentFS(self.client, search_provider=RipgrepSearchProvider())

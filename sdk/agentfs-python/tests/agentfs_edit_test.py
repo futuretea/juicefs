@@ -23,6 +23,8 @@ from unittest.mock import patch
 from agentfs.agentfs import AgentFS
 
 
+PATCH = "*** Begin Patch\n*** Update File: {}\n@@\n-cat\n+dog\n*** End Patch\n"
+
 class EditLocalClient:
     def __init__(self, root):
         self.root = Path(root)
@@ -86,7 +88,9 @@ class AgentFSEditTest(unittest.TestCase):
 
     def test_shared_fixtures(self):
         fixture = Path(__file__).resolve().parents[2] / "agentfs/fixtures/edit_cases.json"
-        for case in json.loads(fixture.read_text())["cases"]:
+        cases = json.loads(fixture.read_text())["cases"]
+        self.assertEqual(50, len(cases), "Do not silently omit shared fixtures")
+        for case in cases:
             with self.subTest(case=case["id"]):
                 target = self.root / "a"
                 original = base64.b64decode(case["input_b64"])
@@ -149,6 +153,20 @@ class AgentFSEditTest(unittest.TestCase):
             self.assertEqual("unchanged", getattr(caught.exception, "outcome", None))
             self.assertEqual(b"cat", target.read_bytes())
 
+    def test_embedded_nul_path_rejected_before_storage(self):
+        target = self.root / "a"
+        target.write_bytes(b"cat\n")
+        path = "/a\0suffix"
+        calls = [lambda: self.fs.edit_file(path, "cat", "dog"),
+                 lambda: self.fs.apply_patch(path, PATCH.format(path))]
+        for call in calls:
+            with self.assertRaises(Exception) as caught:
+                call()
+            self.assertEqual("invalid_input", getattr(caught.exception, "code", None))
+            self.assertEqual("unchanged", getattr(caught.exception, "outcome", None))
+        self.assertEqual(b"cat\n", target.read_bytes())
+        self.assertEqual(0, self.client.renames)
+
     def test_storage_failures_leave_original_or_report_unknown(self):
         for operation in ("edit", "patch"):
             for fault in ("create", "write", "close", "attributes", "access", "unknown", "cleanup"):
@@ -170,7 +188,10 @@ class AgentFSEditTest(unittest.TestCase):
                     self.assertEqual(b"dog\n" if unknown else b"cat\n", target.read_bytes())
                     self.assertEqual(1 if unknown else 0, client.renames)
                     self.assertTrue(error.stage)
-                    if not unknown:
+                    if unknown:
+                        self.assertTrue(error.temp_path)
+                        self.assertEqual(0, client.unlinks)
+                    else:
                         self.assertEqual(before.st_ino, target.stat().st_ino)
                     if fault == "cleanup":
                         self.assertIsNotNone(error.cleanup_error)
@@ -321,6 +342,7 @@ class FaultClient(EditLocalClient):
     def __init__(self, root, fault):
         super().__init__(root)
         self.fault = fault
+        self.unlinks = 0
 
     def trip(self, stage):
         if self.fault == stage: raise OSError("synthetic " + stage)
@@ -351,6 +373,7 @@ class FaultClient(EditLocalClient):
         self.trip("unknown")
 
     def unlink(self, path):
+        self.unlinks += 1
         self.trip("cleanup")
         super().unlink(path)
 
