@@ -134,6 +134,7 @@ const (
 	ENODATA   = -0x3d
 	ENOTSUP   = -0x5f
 	ELOOP     = -0x28
+	EOVERFLOW = -0x4b
 )
 
 func errno(err error) int32 {
@@ -167,6 +168,8 @@ func errno(err error) int32 {
 		return EISDIR
 	case syscall.EINVAL:
 		return EINVAL
+	case syscall.EOVERFLOW:
+		return EOVERFLOW
 	case syscall.ENOSPC:
 		return ENOSPC
 	case syscall.EDQUOT:
@@ -198,6 +201,7 @@ type wrapper struct {
 	ctx        meta.Context
 	m          *mapping
 	user       string
+	groups     []string
 	superuser  string
 	supergroup string
 	conf       javaConf
@@ -431,7 +435,8 @@ func getOrCreate(name, user, groups, superuser, supergroup string, conf javaConf
 		}
 		logger.Infof("JuiceFileSystem created for user:%s groups:%s", user, groups)
 	}
-	w := &wrapper{jfs, name, nil, m, user, superuser, supergroup, conf}
+	w := &wrapper{FileSystem: jfs, volname: name, m: m, user: user,
+		groups: strings.Split(groups, ","), superuser: superuser, supergroup: supergroup, conf: conf}
 	if formats[name] != nil && formats[name].KerbConf != "" {
 		if _, ok := superuserChangedCb[name]; !ok {
 			jfs.Meta().OnReload(func(format *meta.Format) {
@@ -457,14 +462,17 @@ func updateAllCtx(name string, user, groups string) {
 	}
 	if len(ws) > 0 {
 		for _, w := range ws {
+			if w.user == user {
+				w.groups = strings.Split(groups, ",")
+			}
 			var gs []string
 			if userGroupCache[name] != nil {
-				gs = userGroupCache[name][user]
+				gs = userGroupCache[name][w.user]
 			}
 			if gs == nil {
-				gs = strings.Split(groups, ",")
+				gs = w.groups
 			}
-			logger.Debugf("update groups of %s to %s", user, strings.Join(gs, ","))
+			logger.Debugf("update groups of %s to %s", w.user, strings.Join(gs, ","))
 			updateCtx(w, gs)
 		}
 	}
@@ -1360,16 +1368,19 @@ func jfs_readlink(pid int64, h int64, link *C.char, buf uintptr, bufsize int32) 
 	return int32(len(target))
 }
 
-// mode:4 length:8 mtime:8 atime:8 user:50 group:50
+// A record has 28 fixed bytes, two NUL terminators, and at most 100 name bytes.
 func fill_stat(w *wrapper, wb *utils.Buffer, st *fs.FileStat) int32 {
+	user := w.uid2name(uint32(st.Uid()))
+	group := w.gid2name(uint32(st.Gid()))
+	if len(user)+len(group) > 100 {
+		return EOVERFLOW
+	}
 	wb.Put32(uint32(st.Mode()))
 	wb.Put64(uint64(st.Size()))
 	wb.Put64(uint64(st.Mtime()))
 	wb.Put64(uint64(st.Atime()))
-	user := w.uid2name(uint32(st.Uid()))
 	wb.Put([]byte(user))
 	wb.Put8(0)
-	group := w.gid2name(uint32(st.Gid()))
 	wb.Put([]byte(group))
 	wb.Put8(0)
 	return 30 + int32(len(user)) + int32(len(group))
@@ -1689,7 +1700,12 @@ func jfs_listdir(pid int64, h int64, cpath *C.char, offset int64, buf uintptr, b
 		wb.Put8(byte(len(d.Name)))
 		wb.Put(d.Name)
 		header := wb.Get(1)
-		header[0] = uint8(fill_stat(w, wb, fs.AttrToFileInfo(d.Inode, d.Attr)))
+		size := fill_stat(w, wb, fs.AttrToFileInfo(d.Inode, d.Attr))
+		if size < 0 {
+			_ = f.Close(ctx)
+			return size
+		}
+		header[0] = uint8(size)
 	}
 	wb.Put32(0)
 	return bufsize - int32(wb.Left()) - 4

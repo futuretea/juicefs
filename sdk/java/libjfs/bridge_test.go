@@ -237,7 +237,7 @@ prefix.name_bucket;constname=constvalue;labelname=val2;le=+Inf 3 1477043
 	got := buf.String()
 
 	if err := checkLinesAreEqual(want, got, useTags); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 }
 
@@ -289,7 +289,7 @@ prefix.name;constname=constvalue;labelname=val2 1 1477043
 	got := buf.String()
 
 	if err := checkLinesAreEqual(want, got, useTags); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("%s", err.Error())
 	}
 }
 
@@ -321,7 +321,7 @@ func checkLinesAreEqual(w, g string, useTags bool) error {
 			log += fmt.Sprintf("want: %v\ngot: %v\n\n", wantSplit, gotSplit)
 
 			if !reflect.DeepEqual(wantSplit, gotSplit) {
-				return fmt.Errorf(log)
+				return fmt.Errorf("%s", log)
 			}
 		}
 		return nil

@@ -1765,9 +1765,11 @@ public class JuiceFileSystemImpl extends FileSystem {
     long length = buf.getLongLong(4);
     long mtime = buf.getLongLong(12);
     long atime = buf.getLongLong(20);
-    String user = buf.getString(28);
-    String group = buf.getString(28 + user.length() + 1);
-    assert (30 + user.length() + group.length() == size);
+    String user = buf.getString(28, size - 28, StandardCharsets.UTF_8);
+    int userBytes = user.getBytes(StandardCharsets.UTF_8).length;
+    int groupOffset = 28 + userBytes + 1;
+    String group = buf.getString(groupOffset, size - groupOffset, StandardCharsets.UTF_8);
+    assert (30 + userBytes + group.getBytes(StandardCharsets.UTF_8).length == size);
 
     if (fileStatusConstructor == null) {
       return new FileStatus(length, isdir, 1, blocksize, mtime, atime, perm, user, group, p);
