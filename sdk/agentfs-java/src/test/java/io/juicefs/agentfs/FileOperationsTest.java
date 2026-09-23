@@ -53,6 +53,19 @@ public class FileOperationsTest {
     }
 
     @Test
+    public void hugeLimitAllocatesOnlyBytesActuallyRead() throws Exception {
+        FakeNative nativeCalls = new FakeNative();
+        try (AgentFS fs = nativeCalls.client()) {
+            for (int limit : new int[] {Integer.MAX_VALUE - 1, 1 << 30}) {
+                AgentFS.ReadResult result = fs.readFile("/data", 0, limit);
+                assertArrayEquals(bytes("0123456789"), result.data);
+                assertEquals(10, result.nextOffset);
+                assertFalse(result.truncated);
+            }
+        }
+    }
+
+    @Test
     public void invalidReadBoundsDoNotOpenFiles() throws Exception {
         FakeNative nativeCalls = new FakeNative();
         try (AgentFS fs = nativeCalls.client()) {

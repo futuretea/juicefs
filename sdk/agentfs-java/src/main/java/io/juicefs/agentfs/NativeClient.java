@@ -15,6 +15,7 @@
  */
 package io.juicefs.agentfs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,18 +63,22 @@ final class NativeClient implements AutoCloseable, SearchFiles {
                 || offset > Long.MAX_VALUE - limit) {
             throw new IllegalArgumentException("Invalid read offset or limit");
         }
+        // Grow with the bytes actually read; limit is caller input, not an allocation size.
         try (InputStream input = open(path, offset)) {
-            byte[] data = new byte[limit + 1];
-            int size = 0;
-            while (size < data.length) {
-                int read = input.read(data, size, data.length - size);
+            ByteArrayOutputStream data = new ByteArrayOutputStream();
+            byte[] chunk = new byte[Math.min(limit + 1, 1 << 20)];
+            long remaining = limit + 1L;
+            while (remaining > 0) {
+                int read = input.read(chunk, 0, (int) Math.min(chunk.length, remaining));
                 if (read < 0) {
                     break;
                 }
-                size += read;
+                data.write(chunk, 0, read);
+                remaining -= read;
             }
-            return new AgentFS.ReadResult(path, Arrays.copyOf(data, Math.min(size, limit)),
-                    offset, size > limit);
+            byte[] bytes = data.toByteArray();
+            return new AgentFS.ReadResult(path, Arrays.copyOf(bytes, Math.min(bytes.length, limit)),
+                    offset, bytes.length > limit);
         }
     }
 
