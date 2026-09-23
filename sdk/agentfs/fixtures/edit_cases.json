@@ -1,0 +1,322 @@
+{"schema_version":1,"source":"synthetic; approved proposal G1/G2","cases":[
+{"id":"unique","operation":"edit","input_b64":"Y2F0","old_text":"cat","new_text":"dog","expected_b64":"ZG9n","replacements":1},
+{"id":"overlap","operation":"edit","input_b64":"YWFh","old_text":"aa","new_text":"b","error":{"code":"ambiguous_match","outcome":"unchanged"}},
+{"id":"missing","operation":"edit","input_b64":"Y2F0","old_text":"dog","new_text":"b","error":{"code":"no_match","outcome":"unchanged"}},
+{"id":"delete","operation":"edit","input_b64":"Y2F0","old_text":"cat","new_text":"","expected_b64":"","replacements":1},
+{"id":"empty_old","operation":"edit","input_b64":"Y2F0","old_text":"","new_text":"b","error":{"code":"invalid_input","outcome":"unchanged"}},
+{"id":"noop","operation":"edit","input_b64":"Y2F0","old_text":"cat","new_text":"cat","expected_b64":"Y2F0","replacements":0},
+{"id":"binary","operation":"edit","input_b64":"/2NhdAA=","old_text":"cat","new_text":"dog","expected_b64":"/2RvZwA=","replacements":1}
+,
+  {
+    "id": "lf",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End Patch\n",
+    "expected_b64": "ZG9nCg==",
+    "replacements": 1
+  },
+  {
+    "id": "crlf",
+    "operation": "patch",
+    "input_b64": "Y2F0DQo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\r\n-cat\r\n+dog\r\n*** End Patch\n",
+    "expected_b64": "ZG9nDQo=",
+    "replacements": 1
+  },
+  {
+    "id": "eof_none",
+    "operation": "patch",
+    "input_b64": "Y2F0",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "ZG9n",
+    "replacements": 1
+  },
+  {
+    "id": "eof_lf",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "ZG9nCg==",
+    "replacements": 1
+  },
+  {
+    "id": "eof_crlf",
+    "operation": "patch",
+    "input_b64": "Y2F0DQo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\r\n+dog\r\n*** End of File\n*** End Patch\n",
+    "expected_b64": "ZG9nDQo=",
+    "replacements": 1
+  },
+  {
+    "id": "empty_insert",
+    "operation": "patch",
+    "input_b64": "",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n+cat\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0",
+    "replacements": 1
+  },
+  {
+    "id": "eof_insert_none",
+    "operation": "patch",
+    "input_b64": "Y2F0",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\n+dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0CmRvZw==",
+    "replacements": 1
+  },
+  {
+    "id": "eof_insert_lf",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\n+dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0CmRvZwo=",
+    "replacements": 1
+  },
+  {
+    "id": "eof_insert_crlf",
+    "operation": "patch",
+    "input_b64": "Y2F0DQo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\r\n+dog\r\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0DQpkb2cNCg==",
+    "replacements": 1
+  },
+  {
+    "id": "eof_delete_none",
+    "operation": "patch",
+    "input_b64": "Y2F0CmRvZw==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\n-dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0Cg==",
+    "replacements": 1
+  },
+  {
+    "id": "eof_delete_lf",
+    "operation": "patch",
+    "input_b64": "Y2F0CmRvZwo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\n-dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0Cg==",
+    "replacements": 1
+  },
+  {
+    "id": "eof_delete_crlf",
+    "operation": "patch",
+    "input_b64": "Y2F0DQpkb2cNCg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\r\n-dog\r\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0DQo=",
+    "replacements": 1
+  },
+  {
+    "id": "delete_all_none",
+    "operation": "patch",
+    "input_b64": "Y2F0",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n*** End of File\n*** End Patch\n",
+    "expected_b64": "",
+    "replacements": 1
+  },
+  {
+    "id": "delete_all_lf",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n*** End of File\n*** End Patch\n",
+    "expected_b64": "",
+    "replacements": 1
+  },
+  {
+    "id": "delete_all_crlf",
+    "operation": "patch",
+    "input_b64": "Y2F0DQo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\r\n*** End of File\n*** End Patch\n",
+    "expected_b64": "",
+    "replacements": 1
+  },
+  {
+    "id": "patch_noop",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+cat\n*** End Patch\n",
+    "expected_b64": "Y2F0Cg==",
+    "replacements": 0
+  },
+  {
+    "id": "all_or_nothing",
+    "operation": "patch",
+    "input_b64": "Y2F0CmRvZwo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+fox\n@@\n-missing\n+wolf\n*** End Patch\n",
+    "error": {
+      "code": "no_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "multi",
+    "operation": "patch",
+    "input_b64": "Y2F0CmRvZwo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+fox\n@@\n-dog\n+wolf\n*** End Patch\n",
+    "expected_b64": "Zm94CndvbGYK",
+    "replacements": 2
+  },
+  {
+    "id": "original_only",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n@@\n-dog\n+fox\n*** End Patch\n",
+    "error": {
+      "code": "no_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "anchor",
+    "operation": "patch",
+    "input_b64": "Y2F0CmRvZwo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@ cat\n-dog\n+fox\n*** End Patch\n",
+    "expected_b64": "Y2F0CmZveAo=",
+    "replacements": 1
+  },
+  {
+    "id": "anchor_missing",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@ missing\n-cat\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "no_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "anchor_ambiguous",
+    "operation": "patch",
+    "input_b64": "Y2F0CmNhdAo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@ cat\n-cat\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "ambiguous_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "anchor_whole_line",
+    "operation": "patch",
+    "input_b64": "Y2F0CmRvZwo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@ ca\n-dog\n+fox\n*** End Patch\n",
+    "error": {
+      "code": "no_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "old_ambiguous",
+    "operation": "patch",
+    "input_b64": "Y2F0CmNhdAo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "ambiguous_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "eof_disambiguates",
+    "operation": "patch",
+    "input_b64": "Y2F0CmNhdAo=",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End of File\n*** End Patch\n",
+    "expected_b64": "Y2F0CmRvZwo=",
+    "replacements": 1
+  },
+  {
+    "id": "non_eof_no_newline",
+    "operation": "patch",
+    "input_b64": "Y2F0",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "no_match",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "empty",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "context_only",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n cat\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "no_context",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "unknown_control",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n*** Unknown\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "line_numbers",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@ -1,1 +1,1 @@\n-cat\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "move",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n*** Move to: /b\n@@\n-cat\n+dog\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "second_file",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** Update File: /b\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "id": "eof_not_last",
+    "operation": "patch",
+    "input_b64": "Y2F0Cg==",
+    "patch": "*** Begin Patch\n*** Update File: /a\n@@\n-cat\n+dog\n*** End of File\n@@\n-dog\n+fox\n*** End Patch\n",
+    "error": {
+      "code": "invalid_patch",
+      "outcome": "unchanged"
+    }
+  }
+
+,{"id":"add_file","operation":"patch","input_b64":"Y2F0Cg==","patch":"*** Begin Patch\n*** Add File: /a\n+dog\n*** End Patch\n","error":{"code":"invalid_patch","outcome":"unchanged"}}
+,{"id":"delete_file","operation":"patch","input_b64":"Y2F0Cg==","patch":"*** Begin Patch\n*** Delete File: /a\n*** End Patch\n","error":{"code":"invalid_patch","outcome":"unchanged"}}
+,{"id":"wrong_path","operation":"patch","input_b64":"Y2F0Cg==","patch":"*** Begin Patch\n*** Update File: /b\n@@\n-cat\n+dog\n*** End Patch\n","error":{"code":"invalid_patch","outcome":"unchanged"}}
+,{"id":"bad_wrapper","operation":"patch","input_b64":"Y2F0Cg==","patch":"*** Update File: /a\n@@\n-cat\n+dog\n*** End Patch\n","error":{"code":"invalid_patch","outcome":"unchanged"}}
+,{"id":"line_numbers_with_context","operation":"patch","input_b64":"Y2F0Cg==","patch":"*** Begin Patch\n*** Update File: /a\n@@ -1 +1 @@ context\n-cat\n+dog\n*** End Patch\n","error":{"code":"invalid_patch","outcome":"unchanged"}}
+,{"id":"eof_delete_tail_exposes_lf","operation":"patch","input_b64":"Y2F0CmRvZw==","patch":"*** Begin Patch\n*** Update File: /a\n@@\n-dog\n*** End of File\n*** End Patch\n","expected_b64":"Y2F0Cg==","replacements":1}
+,{"id":"eof_delete_tail_exposes_crlf","operation":"patch","input_b64":"Y2F0DQpkb2c=","patch":"*** Begin Patch\n*** Update File: /a\n@@\n-dog\r\n*** End of File\n*** End Patch\n","expected_b64":"Y2F0DQo=","replacements":1}
+,{"id":"mixed_utf8_crlf_binary_edit","operation":"edit","input_b64":"/w0K54yrDQr+","old_text":"猫","new_text":"狗","expected_b64":"/w0K54uXDQr+","replacements":1}
+,{"id":"mixed_utf8_crlf_binary_patch","operation":"patch","input_b64":"/w0K54yrDQr+","patch":"*** Begin Patch\n*** Update File: /a\n@@\n-猫\r\n+狗\r\n*** End Patch\n","expected_b64":"/w0K54uXDQr+","replacements":1}
+]}
