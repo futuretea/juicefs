@@ -114,7 +114,7 @@ AgentFS fs = AgentFS.builder(volume, metadataUrl)
 
 补丁使用 `*** Begin Patch`、唯一 `*** Update File: <path>` 和 `*** End Patch`。`@@` 可带唯一的整行锚点；空格、`-`、`+` 分别表示上下文、删除和新增。所有块必须在原文件中唯一、按序且不重叠，验证完成后才提交。`*** End of File` 把最后一块定位到文件末尾，LF/CRLF 字节有意义。
 
-新 SDK 保留未修改上下文的换行：从无末尾换行的 `cat\ndog` 只删除 `dog`，结果是 `cat\n`。独立测试保留共享 50 个输入，只将 `eof_delete_none` 的期望从 Python 的 `cat` 调整为 `cat\n`。旧 Java/Python SDK 不再包含本分支新增的 AgentFS 编辑入口；共享样例不变。
+新 SDK 保留未修改上下文的换行：从无末尾换行的 `cat\ndog` 只删除 `dog`，结果是 `cat\n`。Python 与 Java 运行同一份 50 个共享编辑样例，EOF 行为一致。旧 Java/Python SDK 不再包含本分支新增的 AgentFS 编辑入口；共享样例不变。
 
 普通参数错误使用 `IllegalArgumentException`，原生操作失败使用 `IOException`。编辑的 `EditException` 继承 `IOException`，有 `code`、`outcome`、`stage`；错误码包括 `invalid_input`、`invalid_patch`、`no_match`、`ambiguous_match`、`unsupported`、`storage_error`、`commit_unknown`。
 
