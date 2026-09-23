@@ -1,0 +1,7 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId><artifactId>agentfs-old-cost</artifactId><version>1</version>
+  <dependencies><dependency>
+    <groupId>org.apache.hadoop</groupId><artifactId>hadoop-common</artifactId><version>3.1.4</version>
+  </dependency></dependencies>
+</project>

@@ -1,0 +1,5 @@
+/target/
+/consumer/target/
+__pycache__/
+!scripts/test_*.py
+!cost/test_*.py

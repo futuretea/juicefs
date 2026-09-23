@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<configuration>
+  <property><name>fs.defaultFS</name><value>jfs://agentfs-legacy/</value></property>
+  <property><name>fs.jfs.impl</name><value>io.juicefs.JuiceFileSystem</value></property>
+  <property><name>juicefs.agentfs-legacy.meta</name><value>sqlite3://legacy.db</value></property>
+  <property><name>juicefs.no-usage-report</name><value>true</value></property>
+  <property><name>juicefs.cache-dir</name><value>memory</value></property>
+  <property><name>juicefs.file.checksum</name><value>true</value></property>
+</configuration>
