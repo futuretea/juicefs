@@ -77,7 +77,6 @@ final class AgentFileEdit {
 
   private static String path(String value) throws EditException {
     EditMatcher.utf8(value, "invalid_input");
-    if (value.indexOf('\0') >= 0) throw new EditException("invalid_input", "unchanged", "input", null);
     try {
       return Inputs.path(value);
     } catch (IllegalArgumentException e) {

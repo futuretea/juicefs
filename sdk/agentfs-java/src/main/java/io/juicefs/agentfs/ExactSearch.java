@@ -133,28 +133,24 @@ final class ExactSearch {
     return traversal;
   }
 
-  private ScanResult scanFile(String pathValue, byte[] needle, Long startAfter, int remaining) {
-    String path = pathValue;
+  private ScanResult scanFile(String path, byte[] needle, Long startAfter, int remaining) {
     try {
       SearchFiles.FileInfo before = fileSystem.stat(path);
       if (!"file".equals(before.type)) {
-        return ScanResult.skip(pathValue, "nonregular");
+        return ScanResult.skip(path, "nonregular");
       }
-      ScanResult result = findMatches(path, pathValue, needle, startAfter, remaining);
-      if (result.skip != null) {
-        return result;
-      }
+      ScanResult result = findMatches(path, needle, startAfter, remaining);
       SearchFiles.FileInfo after = fileSystem.stat(path);
       if (!stamp(before).equals(stamp(after))) {
-        return ScanResult.skip(pathValue, "changed");
+        return ScanResult.skip(path, "changed");
       }
       return result;
     } catch (IOException error) {
-      return ScanResult.skip(pathValue, "read_error", errnoOf(error));
+      return ScanResult.skip(path, "read_error", errnoOf(error));
     }
   }
 
-  private ScanResult findMatches(String path, String displayPath, byte[] needle, Long startAfter, int remaining) throws IOException {
+  private ScanResult findMatches(String path, byte[] needle, Long startAfter, int remaining) throws IOException {
     int overlap = Math.max(0, needle.length - 1);
     long start = startAfter == null ? 0 : Math.max(0, startAfter - overlap);
     List<AgentFS.SearchMatch> matches = new ArrayList<AgentFS.SearchMatch>();
@@ -178,7 +174,7 @@ final class ExactSearch {
         for (int found : matcher.find(window, needle, minimum, remaining - matches.size())) {
           long offset = windowOffset + found;
           if (startAfter == null || offset > startAfter) {
-            matches.add(new AgentFS.SearchMatch(displayPath, offset, needle.length));
+            matches.add(new AgentFS.SearchMatch(path, offset, needle.length));
             if (matches.size() == remaining) {
               return ScanResult.matches(matches, true);
             }

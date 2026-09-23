@@ -61,7 +61,7 @@ public final class AgentFS implements AutoCloseable {
     public SearchPage search(String query, String root, int limit, String cursor) throws IOException {
         client.requireOpen();
         if (root == null || !root.startsWith("/") || root.startsWith("//")) {
-            // Shared search vocabulary, aligned with the Python and Hadoop facades.
+            // Shared search vocabulary, aligned with the Python facade.
             throw new IllegalArgumentException("root must be an absolute path");
         }
         return searchProvider.search(client, query, Inputs.path(root), limit, cursor);
